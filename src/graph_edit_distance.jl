@@ -87,6 +87,45 @@ function get_default_edit_costs(G::Graph, H::Graph)
     )
 end
 
+function add_F1_objective!(model, c::EditCosts, vars::FullVariables, G::Graph, H::Graph)
+    @objective(model, Min, 
+               sum(vars.x[i, k] * c.c_ik[i, k] for i in 1:nv(G) for k in 1:nv(H)) + 
+               sum(vars.nodeDelG[i] * c.c_iε[i] for i in 1:nv(G)) + 
+               sum(vars.nodeDelH[k] * c.c_εk[k] for k in 1:nv(H)) + 
+               sum(vars.y[i, j, k, l] * c.c_ijkl[i, j, k, l] 
+                   for i in 1:nv(G) for j in 1:nv(G)
+                   for k in 1:nv(H) for l in 1:nv(H)
+                   if has_edge(G, i, j) && has_edge(H, k, l) && i < j && k < l) +
+               sum(vars.edgeDelG[i, j] * c.c_ijε[i, j]
+                   for i in 1:nv(G) for j in 1:nv(G)
+                   if has_edge(G, i, j) && i < j) +
+               sum(vars.edgeDelH[k, l] * c.c_εkl[k, l]
+                   for k in 1:nv(H) for l in 1:nv(H)
+                   if has_edge(H, k, l) && k < l)
+               )
+end
+
+function add_F2_objective!(model, c::EditCosts, vars::ReducedVariables, G::Graph, H::Graph, bidirectional::Bool = false)
+    K = sum(c.c_iε[i] for i in 1:nv(G)) + 
+        sum(c.c_εk[k] for k in 1:nv(H)) + 
+        sum(c.c_ijε[i, j]
+            for i in 1:nv(G) for j in 1:nv(G)
+            if has_edge(G, i, j) && i < j) +
+        sum(c.c_εkl[k, l]
+            for k in 1:nv(H) for l in 1:nv(H)
+            if has_edge(H, k, l) && k < l)
+    @objective(model, Min, 
+               sum(vars.x[i, k] * (c.c_ik[i, k] - c.c_iε[i] - c.c_εk[k]) for i in 1:nv(G) for k in 1:nv(H)) + 
+               sum(vars.y[i, j, k, l] * (c.c_ijkl[i, j, k, l] - c.c_ijε[i, j] - c.c_εkl[k, l])
+                   for i in 1:nv(G) for j in 1:nv(G)
+                   for k in 1:nv(H) for l in 1:nv(H)
+                   if has_edge(G, i, j) && has_edge(H, k, l) && i < j && (k < l || bidirectional)) +
+               K
+               )
+end
+
+add_FORI_objective!(model, c::EditCosts, vars::OrientedVariables, G::Graph, H::Graph) = add_F2_objective!(model, c, ReducedVariables(vars.x, vars.z), G, H, true)
+
 function add_node_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
     @constraint(model, [i in 1:nv(G)], sum(vars.x[i,:]) + vars.nodeDelG[i] == 1)
     @constraint(model, [j in 1:nv(H)], sum(vars.x[:,j]) + vars.nodeDelH[j] == 1)
