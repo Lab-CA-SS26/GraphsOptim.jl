@@ -84,3 +84,20 @@ function get_default_edit_costs(G::Graph, H::Graph)
         ones(Int, nv(H), nv(H))
     )
 end
+
+function add_node_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
+    @constraint(model, [i in 1:nv(G)], sum(vars.x[i,:]) + vars.nodeDelG[i] == 1)
+    @constraint(model, [j in 1:nv(H)], sum(vars.x[:,j]) + vars.nodeDelH[j] == 1)
+end
+
+function add_node_map_constraints!(model::GenericModel, vars::Union{ReducedVariables, OrientedVariables}, G, H)
+    @constraint(model, [i in 1:nv(G)], sum(vars.x[i,:]) <= 1)
+    @constraint(model, [j in 1:nv(H)], sum(vars.x[:,j]) <= 1)
+end
+
+function add_edge_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
+    @constraint(model, [i in vertices(G), j in vertices(G); has_edge(G, i, j) && i < j], 
+                sum(vars.y[i, j, :, :]) + vars.edgeDelG[i, j] == 1)
+    @constraint(model, [k in vertices(H), l in vertices(H); has_edge(H, k, l) && k < l], 
+                sum(vars.y[:, :, k, l]) + vars.edgeDelH[k, l] == 1)
+end
