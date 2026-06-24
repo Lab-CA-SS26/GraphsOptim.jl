@@ -19,7 +19,7 @@ end
 
 Variables = Union{ReducedVariables, FullVariables}
 
-function create_model_vars_reduced!(model::GenericModel, G::Graph, H::Graph, bidirectional::Bool = false)
+function create_model_vars_reduced!(model::GenericModel, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool = false)
     @variable(model, x[1:nv(G),1:nv(H)], Bin)
 
     # use a sparse indexed edge variable set. Edges are oriented to have only one edge per edge
@@ -40,9 +40,9 @@ function create_model_vars_reduced!(model::GenericModel, G::Graph, H::Graph, bid
     end
 end
 
-create_model_vars_bidirectional!(model::GenericModel, G::Graph, H::Graph) = create_model_vars_reduced!(model, G, H, true)
+create_model_vars_bidirectional!(model::GenericModel, G::AbstractGraph, H::AbstractGraph) = create_model_vars_reduced!(model, G, H, true)
 
-function create_model_vars_full!(model::GenericModel, G::Graph, H::Graph)
+function create_model_vars_full!(model::GenericModel, G::AbstractGraph, H::AbstractGraph)
     vars = create_model_vars_reduced!(model, G, H)
     @variable(model, nodeDelG[1:nv(G)], Bin)
     @variable(model, nodeDelH[1:nv(H)], Bin)
@@ -66,7 +66,7 @@ end
 
 # asserts that the given cost function could belong to G and H in terms of their dimensions
 # This function simultaneously serves as a documentation on EditCosts
-function validate_cost_function(c::EditCosts, G::Graph, H::Graph)
+function validate_cost_function(c::EditCosts, G::AbstractGraph, H::AbstractGraph)
     @assert size(c.c_ik) == (nv(G), nv(H))
     @assert size(c.c_iε) == (nv(G),)
     @assert size(c.c_εk) == (nv(H),)
@@ -76,7 +76,7 @@ function validate_cost_function(c::EditCosts, G::Graph, H::Graph)
 end
 
 # returns the intuitive "deleting things costs 1" cost function
-function get_default_edit_costs(G::Graph, H::Graph)
+function get_default_edit_costs(G::AbstractGraph, H::AbstractGraph)
     return EditCosts(
         zeros(Int, nv(G), nv(H)),
         ones(Int, nv(G)),
@@ -87,7 +87,7 @@ function get_default_edit_costs(G::Graph, H::Graph)
     )
 end
 
-function add_F1_objective!(model, c::EditCosts, vars::FullVariables, G::Graph, H::Graph)
+function add_F1_objective!(model, c::EditCosts, vars::FullVariables, G::AbstractGraph, H::AbstractGraph)
     @objective(model, Min, 
                sum(vars.x[i, k] * c.c_ik[i, k] for i in 1:nv(G) for k in 1:nv(H)) + 
                sum(vars.nodeDelG[i] * c.c_iε[i] for i in 1:nv(G)) + 
@@ -105,7 +105,7 @@ function add_F1_objective!(model, c::EditCosts, vars::FullVariables, G::Graph, H
                )
 end
 
-function add_F2_objective!(model, c::EditCosts, vars::ReducedVariables, G::Graph, H::Graph, bidirectional::Bool = false)
+function add_F2_objective!(model, c::EditCosts, vars::ReducedVariables, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool = false)
     K = sum(c.c_iε[i] for i in 1:nv(G)) + 
         sum(c.c_εk[k] for k in 1:nv(H)) + 
         sum(c.c_ijε[i, j]
@@ -124,7 +124,7 @@ function add_F2_objective!(model, c::EditCosts, vars::ReducedVariables, G::Graph
                )
 end
 
-add_FORI_objective!(model, c::EditCosts, vars::OrientedVariables, G::Graph, H::Graph) = add_F2_objective!(model, c, ReducedVariables(vars.x, vars.z), G, H, true)
+add_FORI_objective!(model, c::EditCosts, vars::OrientedVariables, G::AbstractGraph, H::AbstractGraph) = add_F2_objective!(model, c, ReducedVariables(vars.x, vars.z), G, H, true)
 
 function add_node_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
     @constraint(model, [i in 1:nv(G)], sum(vars.x[i,:]) + vars.nodeDelG[i] == 1)

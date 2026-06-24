@@ -15,6 +15,7 @@ using JuMP: objective_function, add_to_expression!
 using JuMP: set_silent, optimize!, termination_status, value
 using JuMP: set_optimizer, objective_value
 using JuMP: @variable, @constraint, @objective
+using JuMP: VariableRef, Containers.SparseAxisArray, GenericModel
 using LinearAlgebra: norm, tr, dot
 using MathOptInterface: OPTIMAL
 using SparseArrays: sparse
@@ -38,5 +39,6 @@ include("fractional_coloring.jl")
 include("shortest_path.jl")
 include("maximum_clique.jl")
 include("independent_set.jl")
+include("graph_edit_distance.jl")
 
 end
