@@ -101,3 +101,54 @@ function add_edge_map_constraints!(model::GenericModel, vars::FullVariables, G, 
     @constraint(model, [k in vertices(H), l in vertices(H); has_edge(H, k, l) && k < l], 
                 sum(vars.y[:, :, k, l]) + vars.edgeDelH[k, l] == 1)
 end
+
+function add_simple_topology_constraints!(model::GenericModel, vars::Variables, G, H)
+    @constraint(model, [
+                i in vertices(G), j in vertices(G), 
+                k in vertices(H), l in vertices(H); 
+                has_edge(G, i, j) && has_edge(H, k, l) &&
+                i < j && k < l], 
+                vars.y[i, j, k, l] <= vars.x[i, k] + vars.x[j, k])
+    @constraint(model, [
+                i in vertices(G), j in vertices(G), 
+                k in vertices(H), l in vertices(H); 
+                has_edge(G, i, j) && has_edge(H, k, l) &&
+                i < j && k < l], 
+                vars.y[i, j, k, l] <= vars.x[i, l] + vars.x[j, l])
+end
+
+function add_improved_topology_constraints_G_to_H!(model::GenericModel, vars::Variables, G, H)
+    @constraint(model, [
+                i in vertices(G), j in vertices(G), 
+                k in vertices(H); 
+                has_edge(G, i, j) && i < j], 
+                sum(vars.y[i, j, k, :]) + sum(vars.y[i, j, :, k]) <= vars.x[i, k] + vars.x[j, k])
+end
+
+function add_improved_topology_constraints_H_to_G!(model::GenericModel, vars::Variables, G, H)
+    @constraint(model, [
+                k in vertices(H), l in vertices(H), 
+                i in vertices(G); 
+                has_edge(H, k, l) && k < l], 
+                sum(vars.y[i, :, k, l]) + sum(vars.y[:, i, k, l]) <= vars.x[i, k] + vars.x[i, l])
+end
+
+function add_oriented_topology_constraints!(model::GenericModel, vars::OrientedVariables, G, H)
+    # combines the constraints of add_improved_topology_constraints_G_to_H! and add_improved_topology_constraints_H_to_G!
+    # but can be more precise due to the directionality of H
+    @constraint(model, [
+                k in vertices(H),
+                i in vertices(G), j in vertices(G); 
+                has_edge(G, i, j) && i < j], 
+                sum(vars.z[i, j, k, :])  <= vars.x[i, k])
+    @constraint(model, [
+                k in vertices(H),
+                i in vertices(G), j in vertices(G); 
+                has_edge(G, i, j) && i < j], 
+                sum(vars.z[i, j, :, k])  <= vars.x[j, k])
+    @constraint(model, [
+                k in vertices(H), l in vertices(H),
+                i in vertices(G); 
+                has_edge(H, k, l)], 
+                sum(vars.z[i, :, k, l]) + sum(vars.z[:, i, l, k]) <= vars.x[i, k])
+end
