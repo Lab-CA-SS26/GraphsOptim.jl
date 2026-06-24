@@ -193,3 +193,93 @@ function add_oriented_topology_constraints!(model::GenericModel, vars::OrientedV
                 has_edge(H, k, l)], 
                 sum(vars.z[i, :, k, l]) + sum(vars.z[:, i, l, k]) <= vars.x[i, k])
 end
+
+function construct_F1!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+    vars = create_model_vars_full!(model, G, H)
+
+    add_node_map_constraints!(model, vars, G, H)
+    add_edge_map_constraints!(model, vars, G, H)
+
+    add_simple_topology_constraints!(model, vars, G, H)
+
+    add_F1_objective!(model, c, vars, G, H)
+    return model
+end
+
+function construct_F2minus!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+    vars = create_model_vars_reduced!(model, G, H)
+
+    add_node_map_constraints!(model, vars, G, H)
+
+    add_simple_topology_constraints!(model, vars, G, H)
+
+    add_F2_objective!(model, c, vars, G, H)
+end
+
+function construct_F2!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+    vars = create_model_vars_reduced!(model, G, H)
+
+    add_node_map_constraints!(model, vars, G, H)
+    # note that edge map constraints are implied by the better topology constraints, so we can skip
+    # them
+
+    add_improved_topology_constraints_G_to_H!(model, vars, G, H)
+
+    if ismissing(c)
+        c = get_default_edit_costs(G, H)
+    end
+
+    add_F2_objective!(model, c, vars, G, H)
+    return model
+end
+
+function construct_F2plus!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+    vars = create_model_vars_reduced!(model, G, H)
+
+    add_node_map_constraints!(model, vars, G, H)
+    # note that edge map constraints are implied by the better topology constraints, so we can skip
+    # them
+
+    add_improved_topology_constraints_G_to_H!(model, vars, G, H)
+    add_improved_topology_constraints_H_to_G!(model, vars, G, H)
+
+    add_F2_objective!(model, c, vars, G, H)
+    return model
+end
+
+function construct_F1prime!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+    vars = create_model_vars_full!(model, G, H)
+
+    add_node_map_constraints!(model, vars, G, H)
+    # in the full variable set, we can't skip the edge map constraints
+    add_edge_map_constraints!(model, vars, G, H)
+
+    add_improved_topology_constraints_G_to_H!(model, vars, G, H)
+
+    add_F1_objective!(model, c, vars, G, H)
+    return model
+end
+
+function construct_F1plus!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+    vars = create_model_vars_full!(model, G, H)
+
+    add_node_map_constraints!(model, vars, G, H)
+    # in the full variable set, we can't skip the edge map constraints
+    add_edge_map_constraints!(model, vars, G, H)
+
+    add_improved_topology_constraints_G_to_H!(model, vars, G, H)
+    add_improved_topology_constraints_H_to_G!(model, vars, G, H)
+
+    add_F1_objective!(model, c, vars, G, H)
+    return model
+end
+
+function construct_FORI!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+    vars = create_model_vars_bidirectional!(model, G, H)
+    add_node_map_constraints!(model, vars, G, H)
+
+    add_oriented_topology_constraints!(model, vars, G, H)
+
+    add_FORI_objective!(model, c, vars, G, H)
+    return model
+end
