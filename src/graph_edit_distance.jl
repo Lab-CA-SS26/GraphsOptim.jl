@@ -17,6 +17,8 @@ struct OrientedVariables
     z::SparseAxisArray{VariableRef}
 end
 
+Variables = Union{ReducedVariables, FullVariables}
+
 function create_model_vars_reduced!(model::GenericModel, G::Graph, H::Graph, bidirectional::Bool = false)
     @variable(model, x[1:nv(G),1:nv(H)], Bin)
 
