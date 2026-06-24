@@ -17,6 +17,40 @@ struct OrientedVariables
     z::SparseAxisArray{VariableRef}
 end
 
+function create_model_vars_reduced!(model::GenericModel, G::Graph, H::Graph, bidirectional::Bool = false)
+    @variable(model, x[1:nv(G),1:nv(H)], Bin)
+
+    # use a sparse indexed edge variable set. Edges are oriented to have only one edge per edge
+    @variable(model,
+              y[
+                i in vertices(G), j in vertices(G), 
+                k in vertices(H), l in vertices(H); 
+                has_edge(G, i, j) && has_edge(H, k, l) &&
+                i < j && (k < l || bidirectional)
+              ],
+              Bin
+              )
+
+    if bidirectional
+        return OrientedVariables(x, y)
+    else
+        return ReducedVariables(x, y)
+    end
+end
+
+create_model_vars_bidirectional!(model::GenericModel, G::Graph, H::Graph) = create_model_vars_reduced!(model, G, H, true)
+
+function create_model_vars_full!(model::GenericModel, G::Graph, H::Graph)
+    vars = create_model_vars_reduced!(model, G, H)
+    @variable(model, nodeDelG[1:nv(G)], Bin)
+    @variable(model, nodeDelH[1:nv(H)], Bin)
+
+    @variable(model, edgeDelG[i in vertices(G), j in vertices(G); has_edge(G, i, j)], Bin)
+    @variable(model, edgeDelH[k in vertices(H), l in vertices(H); has_edge(H, k, l)], Bin)
+
+    return FullVariables(vars.x, vars.y, nodeDelG, nodeDelH, edgeDelG, edgeDelH)
+end
+
 # based on FORI implementation of the cost function
 struct EditCosts
     c_ik::Array{Number, 2}
