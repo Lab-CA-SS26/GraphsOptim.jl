@@ -1,3 +1,12 @@
+abstract type Formulation end
+struct F1 <: Formulation end
+struct F1prime <: Formulation end
+struct F1plus <: Formulation end
+struct F2minus <: Formulation end
+struct F2 <: Formulation end
+struct F2plus <: Formulation end
+struct FORI <: Formulation end
+
 struct ReducedVariables
     x::Matrix{VariableRef}
     y::SparseAxisArray{VariableRef}
@@ -194,7 +203,7 @@ function add_oriented_topology_constraints!(model::GenericModel, vars::OrientedV
                 sum(vars.z[i, :, k, l]) + sum(vars.z[:, i, l, k]) <= vars.x[i, k])
 end
 
-function construct_F1!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(::Type{F1}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     vars = create_model_vars_full!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
@@ -205,7 +214,7 @@ function construct_F1!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     add_F1_objective!(model, c, vars, G, H)
 end
 
-function construct_F2minus!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(::Type{F2minus}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     vars = create_model_vars_reduced!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
@@ -215,7 +224,7 @@ function construct_F2minus!(model, G, H, c::EditCosts = get_default_edit_costs(G
     add_F2_objective!(model, c, vars, G, H)
 end
 
-function construct_F2!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(::Type{F2}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     vars = create_model_vars_reduced!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
@@ -231,7 +240,7 @@ function construct_F2!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     add_F2_objective!(model, c, vars, G, H)
 end
 
-function construct_F2plus!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(::Type{F2plus}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     vars = create_model_vars_reduced!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
@@ -244,7 +253,7 @@ function construct_F2plus!(model, G, H, c::EditCosts = get_default_edit_costs(G,
     add_F2_objective!(model, c, vars, G, H)
 end
 
-function construct_F1prime!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(::Type{F1prime}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     vars = create_model_vars_full!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
@@ -256,7 +265,7 @@ function construct_F1prime!(model, G, H, c::EditCosts = get_default_edit_costs(G
     add_F1_objective!(model, c, vars, G, H)
 end
 
-function construct_F1plus!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(::Type{F1plus}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     vars = create_model_vars_full!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
@@ -269,7 +278,7 @@ function construct_F1plus!(model, G, H, c::EditCosts = get_default_edit_costs(G,
     add_F1_objective!(model, c, vars, G, H)
 end
 
-function construct_FORI!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(::Type{FORI}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     vars = create_model_vars_bidirectional!(model, G, H)
     add_node_map_constraints!(model, vars, G, H)
 
