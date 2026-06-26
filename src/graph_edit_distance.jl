@@ -203,7 +203,6 @@ function construct_F1!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     add_simple_topology_constraints!(model, vars, G, H)
 
     add_F1_objective!(model, c, vars, G, H)
-    return model
 end
 
 function construct_F2minus!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
@@ -230,7 +229,6 @@ function construct_F2!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     end
 
     add_F2_objective!(model, c, vars, G, H)
-    return model
 end
 
 function construct_F2plus!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
@@ -244,7 +242,6 @@ function construct_F2plus!(model, G, H, c::EditCosts = get_default_edit_costs(G,
     add_improved_topology_constraints_H_to_G!(model, vars, G, H)
 
     add_F2_objective!(model, c, vars, G, H)
-    return model
 end
 
 function construct_F1prime!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
@@ -257,7 +254,6 @@ function construct_F1prime!(model, G, H, c::EditCosts = get_default_edit_costs(G
     add_improved_topology_constraints_G_to_H!(model, vars, G, H)
 
     add_F1_objective!(model, c, vars, G, H)
-    return model
 end
 
 function construct_F1plus!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
@@ -271,7 +267,6 @@ function construct_F1plus!(model, G, H, c::EditCosts = get_default_edit_costs(G,
     add_improved_topology_constraints_H_to_G!(model, vars, G, H)
 
     add_F1_objective!(model, c, vars, G, H)
-    return model
 end
 
 function construct_FORI!(model, G, H, c::EditCosts = get_default_edit_costs(G, H))
@@ -281,5 +276,4 @@ function construct_FORI!(model, G, H, c::EditCosts = get_default_edit_costs(G, H
     add_oriented_topology_constraints!(model, vars, G, H)
 
     add_FORI_objective!(model, c, vars, G, H)
-    return model
 end
