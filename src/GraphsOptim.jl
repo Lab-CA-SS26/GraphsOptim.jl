@@ -8,6 +8,7 @@ module GraphsOptim
 using Graphs: AbstractGraph, is_directed
 using Graphs: vertices, edges, nv, ne, src, dst, inneighbors, outneighbors, has_edge
 using Graphs: complement, maximal_cliques
+using Graphs: SimpleGraph
 using FillArrays: Zeros, Ones, Fill
 using HiGHS: HiGHS
 using JuMP: Model, AffExpr

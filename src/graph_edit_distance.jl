@@ -286,3 +286,10 @@ function construct_formulation!(::Type{FORI}, model, G, H, c::EditCosts = get_de
 
     add_FORI_objective!(model, c, vars, G, H)
 end
+
+function edit_distance!(model, G::SimpleGraph, H::SimpleGraph; c::EditCosts = get_default_edit_costs(G, H), formulation::Type{<:Formulation} = FORI)
+    if is_directed(G) || is_directed(H)
+        error("This version of the graph edit distance only accepts undirected graphs.")
+    end
+    construct_formulation!(formulation, model, G, H, c)
+end
