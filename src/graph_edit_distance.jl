@@ -119,16 +119,16 @@ function add_F2_objective!(model, c::EditCosts, vars::ReducedVariables, G::Abstr
         sum(c.c_εk[k] for k in 1:nv(H)) + 
         sum(c.c_ijε[i, j]
             for i in 1:nv(G) for j in 1:nv(G)
-            if has_edge(G, i, j) && i < j) +
+            if has_edge(G, i, j) && i < j; init=0) +
         sum(c.c_εkl[k, l]
             for k in 1:nv(H) for l in 1:nv(H)
-            if has_edge(H, k, l) && k < l)
+            if has_edge(H, k, l) && k < l; init=0)
     @objective(model, Min, 
                sum(vars.x[i, k] * (c.c_ik[i, k] - c.c_iε[i] - c.c_εk[k]) for i in 1:nv(G) for k in 1:nv(H)) + 
                sum(vars.y[i, j, k, l] * (c.c_ijkl[i, j, k, l] - c.c_ijε[i, j] - c.c_εkl[k, l])
                    for i in 1:nv(G) for j in 1:nv(G)
                    for k in 1:nv(H) for l in 1:nv(H)
-                   if has_edge(G, i, j) && has_edge(H, k, l) && i < j && (k < l || bidirectional)) +
+                   if has_edge(G, i, j) && has_edge(H, k, l) && i < j && (k < l || bidirectional); init=0) +
                K
                )
 end
@@ -147,9 +147,9 @@ end
 
 function add_edge_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
     @constraint(model, [i in vertices(G), j in vertices(G); has_edge(G, i, j) && i < j], 
-                sum(vars.y[i, j, :, :]) + vars.edgeDelG[i, j] == 1)
+                sum(vars.y[i, j, :, :]; init=0) + vars.edgeDelG[i, j] == 1)
     @constraint(model, [k in vertices(H), l in vertices(H); has_edge(H, k, l) && k < l], 
-                sum(vars.y[:, :, k, l]) + vars.edgeDelH[k, l] == 1)
+                sum(vars.y[:, :, k, l]; init=0) + vars.edgeDelH[k, l] == 1)
 end
 
 function add_simple_topology_constraints!(model::GenericModel, vars::Variables, G, H)
@@ -172,7 +172,7 @@ function add_improved_topology_constraints_G_to_H!(model::GenericModel, vars::Va
                 i in vertices(G), j in vertices(G), 
                 k in vertices(H); 
                 has_edge(G, i, j) && i < j], 
-                sum(vars.y[i, j, k, :]) + sum(vars.y[i, j, :, k]) <= vars.x[i, k] + vars.x[j, k])
+                sum(vars.y[i, j, k, :]; init=0) + sum(vars.y[i, j, :, k]; init=0) <= vars.x[i, k] + vars.x[j, k])
 end
 
 function add_improved_topology_constraints_H_to_G!(model::GenericModel, vars::Variables, G, H)
@@ -180,7 +180,7 @@ function add_improved_topology_constraints_H_to_G!(model::GenericModel, vars::Va
                 k in vertices(H), l in vertices(H), 
                 i in vertices(G); 
                 has_edge(H, k, l) && k < l], 
-                sum(vars.y[i, :, k, l]) + sum(vars.y[:, i, k, l]) <= vars.x[i, k] + vars.x[i, l])
+                sum(vars.y[i, :, k, l]; init=0) + sum(vars.y[:, i, k, l]; init=0) <= vars.x[i, k] + vars.x[i, l])
 end
 
 function add_oriented_topology_constraints!(model::GenericModel, vars::OrientedVariables, G, H)
@@ -190,17 +190,17 @@ function add_oriented_topology_constraints!(model::GenericModel, vars::OrientedV
                 k in vertices(H),
                 i in vertices(G), j in vertices(G); 
                 has_edge(G, i, j) && i < j], 
-                sum(vars.z[i, j, k, :])  <= vars.x[i, k])
+                sum(vars.z[i, j, k, :]; init=0) <= vars.x[i, k])
     @constraint(model, [
                 k in vertices(H),
                 i in vertices(G), j in vertices(G); 
                 has_edge(G, i, j) && i < j], 
-                sum(vars.z[i, j, :, k])  <= vars.x[j, k])
+                sum(vars.z[i, j, :, k]; init=0) <= vars.x[j, k])
     @constraint(model, [
                 k in vertices(H), l in vertices(H),
                 i in vertices(G); 
                 has_edge(H, k, l)], 
-                sum(vars.z[i, :, k, l]) + sum(vars.z[:, i, l, k]) <= vars.x[i, k])
+                sum(vars.z[i, :, k, l]; init=0) + sum(vars.z[:, i, l, k]; init=0) <= vars.x[i, k])
 end
 
 function construct_formulation!(::Type{F1}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
