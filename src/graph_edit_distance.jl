@@ -9,21 +9,21 @@ struct FORI <: Formulation end
 
 struct ReducedVariables
     x::Matrix{VariableRef}
-    y::SparseAxisArray{VariableRef}
+    y
 end
 
 struct FullVariables
     x::Matrix{VariableRef}
-    y::SparseAxisArray{VariableRef}
+    y
     nodeDelG::Vector{VariableRef}
     nodeDelH::Vector{VariableRef}
-    edgeDelG::SparseAxisArray{VariableRef}
-    edgeDelH::SparseAxisArray{VariableRef}
+    edgeDelG
+    edgeDelH
 end
 
 struct OrientedVariables
     x::Matrix{VariableRef}
-    z::SparseAxisArray{VariableRef}
+    z
 end
 
 Variables = Union{ReducedVariables, FullVariables}
