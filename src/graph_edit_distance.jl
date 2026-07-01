@@ -115,8 +115,8 @@ function add_F1_objective!(model, c::EditCosts, vars::FullVariables, G::Abstract
 end
 
 function add_F2_objective!(model, c::EditCosts, vars::ReducedVariables, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool = false)
-    K = sum(c.c_iε[i] for i in 1:nv(G)) + 
-        sum(c.c_εk[k] for k in 1:nv(H)) + 
+    K = sum(c.c_iε[i] for i in 1:nv(G); init=0) + 
+        sum(c.c_εk[k] for k in 1:nv(H); init=0) + 
         sum(c.c_ijε[i, j]
             for i in 1:nv(G) for j in 1:nv(G)
             if has_edge(G, i, j) && i < j; init=0) +
@@ -124,7 +124,7 @@ function add_F2_objective!(model, c::EditCosts, vars::ReducedVariables, G::Abstr
             for k in 1:nv(H) for l in 1:nv(H)
             if has_edge(H, k, l) && k < l; init=0)
     @objective(model, Min, 
-               sum(vars.x[i, k] * (c.c_ik[i, k] - c.c_iε[i] - c.c_εk[k]) for i in 1:nv(G) for k in 1:nv(H)) + 
+               sum(vars.x[i, k] * (c.c_ik[i, k] - c.c_iε[i] - c.c_εk[k]) for i in 1:nv(G) for k in 1:nv(H); init=0) + 
                sum(vars.y[i, j, k, l] * (c.c_ijkl[i, j, k, l] - c.c_ijε[i, j] - c.c_εkl[k, l])
                    for i in 1:nv(G) for j in 1:nv(G)
                    for k in 1:nv(H) for l in 1:nv(H)
