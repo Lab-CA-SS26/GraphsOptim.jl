@@ -59,4 +59,8 @@ using Test
     @testset verbose = true "Shortest path" begin
         include("shortest_path.jl")
     end
+
+    @testset "Graph Edit Distance" begin
+        include("graph_edit_distance.jl")
+    end
 end;
