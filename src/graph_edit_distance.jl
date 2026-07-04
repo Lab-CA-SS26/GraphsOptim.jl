@@ -293,3 +293,15 @@ function edit_distance!(model, G::SimpleGraph, H::SimpleGraph; c::EditCosts = ge
     end
     construct_formulation!(formulation, model, G, H, c)
 end
+
+function edit_distance!(G::SimpleGraph, H::SimpleGraph; c::EditCosts = get_default_edit_costs(G, H), formulation::Type{<:Formulation} = FORI, optimizer = HiGHS.Optimizer)
+    model = Model(optimizer)
+    set_silent(model)
+    edit_distance!(model, G, H; c=c, formulation=formulation)
+    optimize!(model)
+    if termination_status(model) != OPTIMAL
+        error("Graph edit distance was not solved optimally.")
+    end
+    node_matching = convert(Matrix{Int}, model[:x] |> value)
+    return node_matching
+end
