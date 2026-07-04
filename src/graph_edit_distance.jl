@@ -288,6 +288,15 @@ function construct_formulation!(::Type{FORI}, model, G, H, c::EditCosts = get_de
     add_FORI_objective!(model, c, vars, G, H)
 end
 
+"""
+    edit_distance(model, G, H;
+        c, formulation
+    )
+
+Modify a JuMP model to compute the graph edit distance between undirected graphs `G` and `H`
+given cost function `c` using formulation `formulation`. See [`edit_distance`](@ref) for
+more details.
+"""
 function edit_distance!(model, G::SimpleGraph, H::SimpleGraph; c::EditCosts = get_default_edit_costs(G, H), formulation::Type{<:Formulation} = FORI)
     if is_directed(G) || is_directed(H)
         error("This version of the graph edit distance only accepts undirected graphs.")
@@ -295,7 +304,28 @@ function edit_distance!(model, G::SimpleGraph, H::SimpleGraph; c::EditCosts = ge
     construct_formulation!(formulation, model, G, H, c)
 end
 
-function edit_distance!(G::SimpleGraph, H::SimpleGraph; c::EditCosts = get_default_edit_costs(G, H), formulation::Type{<:Formulation} = FORI, optimizer = HiGHS.Optimizer)
+"""
+    edit_distance(G, H;
+        c, formulation, optimizer
+    )
+
+Compute the graph edit distance between undirected graphs `G` and `H` given edit costs `c`.
+
+# Arguments
+- `G::Graphs.SimpleGraph`: graph
+- `H::Graphs.SimpleGraph`: graph
+
+# Keywords
+- `c::EditCosts`: pairwise edit cost struct for the graphs. See [`EditCosts`](@ref). 
+    Defaults to the canonical edit costs [`get_default_edit_costs`](@ref)
+- `formulation::Type{<:Formulation}`: the ILP formulation to use. Defaults to the most 
+    powerful [`FORI`](@ref)
+- `optimizer`: JuMP-compatible solver (default is `HiGHS.Optimizer`)
+
+# Returns
+- `Matrix{Int}`: the node map matrix, which encodes the optimal edit path
+"""
+function edit_distance(G::SimpleGraph, H::SimpleGraph; c::EditCosts = get_default_edit_costs(G, H), formulation::Type{<:Formulation} = FORI, optimizer = HiGHS.Optimizer)
     model = Model(optimizer)
     set_silent(model)
     edit_distance!(model, G, H; c=c, formulation=formulation)
