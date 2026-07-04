@@ -16,7 +16,7 @@ using JuMP: objective_function, add_to_expression!
 using JuMP: set_silent, optimize!, termination_status, value
 using JuMP: set_optimizer, objective_value
 using JuMP: @variable, @constraint, @objective
-using JuMP: GenericModel
+using JuMP: GenericModel, VariableRef
 using LinearAlgebra: norm, tr, dot
 using MathOptInterface: OPTIMAL
 using SparseArrays: sparse
