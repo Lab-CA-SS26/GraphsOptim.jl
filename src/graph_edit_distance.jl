@@ -31,7 +31,8 @@ Variables = Union{ReducedVariables, FullVariables}
 function create_model_vars_reduced!(model::GenericModel, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool = false)
     @variable(model, x[1:nv(G),1:nv(H)], Bin)
 
-    # use a sparse indexed edge variable set. Edges are oriented to have only one edge per edge
+    # Use a sparse indexed edge variable set, so we can later sum over all neighbors with y[i, :, k, l].
+    # Edge variables are always oriented to avoid ambiguity.
     @variable(model,
               y[
                 i in vertices(G), j in vertices(G), 
@@ -84,7 +85,7 @@ function validate_cost_function(c::EditCosts, G::AbstractGraph, H::AbstractGraph
     @assert size(c.c_εkl) == (nv(H), nv(H))
 end
 
-# returns the intuitive "deleting things costs 1" cost function
+# returns the canonical "deleting things costs 1" cost function
 function get_default_edit_costs(G::AbstractGraph, H::AbstractGraph)
     return EditCosts(
         zeros(Int, nv(G), nv(H)),
@@ -115,6 +116,7 @@ function add_F1_objective!(model, c::EditCosts, vars::FullVariables, G::Abstract
 end
 
 function add_F2_objective!(model, c::EditCosts, vars::ReducedVariables, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool = false)
+    # Note that init=0 is necessary to allow for empty graph edge cases.
     K = sum(c.c_iε[i] for i in 1:nv(G); init=0) + 
         sum(c.c_εk[k] for k in 1:nv(H); init=0) + 
         sum(c.c_ijε[i, j]
@@ -146,6 +148,7 @@ function add_node_map_constraints!(model::GenericModel, vars::Union{ReducedVaria
 end
 
 function add_edge_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
+    # Note that init=0 is necessary to allow for empty graph edge cases.
     @constraint(model, [i in vertices(G), j in vertices(G); has_edge(G, i, j) && i < j], 
                 sum(vars.y[i, j, :, :]; init=0) + vars.edgeDelG[i, j] == 1)
     @constraint(model, [k in vertices(H), l in vertices(H); has_edge(H, k, l) && k < l], 
@@ -218,6 +221,7 @@ function construct_formulation!(::Type{F2minus}, model, G, H, c::EditCosts = get
     vars = create_model_vars_reduced!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
+    # Edgemap constraints are implied, so we can skip them.
 
     add_simple_topology_constraints!(model, vars, G, H)
 
@@ -228,8 +232,7 @@ function construct_formulation!(::Type{F2}, model, G, H, c::EditCosts = get_defa
     vars = create_model_vars_reduced!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
-    # note that edge map constraints are implied by the better topology constraints, so we can skip
-    # them
+    # Edgemap constraints are implied, so we can skip them.
 
     add_improved_topology_constraints_G_to_H!(model, vars, G, H)
 
@@ -244,8 +247,7 @@ function construct_formulation!(::Type{F2plus}, model, G, H, c::EditCosts = get_
     vars = create_model_vars_reduced!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
-    # note that edge map constraints are implied by the better topology constraints, so we can skip
-    # them
+    # Edgemap constraints are implied, so we can skip them.
 
     add_improved_topology_constraints_G_to_H!(model, vars, G, H)
     add_improved_topology_constraints_H_to_G!(model, vars, G, H)
@@ -257,7 +259,6 @@ function construct_formulation!(::Type{F1prime}, model, G, H, c::EditCosts = get
     vars = create_model_vars_full!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
-    # in the full variable set, we can't skip the edge map constraints
     add_edge_map_constraints!(model, vars, G, H)
 
     add_improved_topology_constraints_G_to_H!(model, vars, G, H)
@@ -269,7 +270,6 @@ function construct_formulation!(::Type{F1plus}, model, G, H, c::EditCosts = get_
     vars = create_model_vars_full!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
-    # in the full variable set, we can't skip the edge map constraints
     add_edge_map_constraints!(model, vars, G, H)
 
     add_improved_topology_constraints_G_to_H!(model, vars, G, H)
@@ -281,6 +281,7 @@ end
 function construct_formulation!(::Type{FORI}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     vars = create_model_vars_bidirectional!(model, G, H)
     add_node_map_constraints!(model, vars, G, H)
+    # Edgemap constraints are implied, so we can skip them.
 
     add_oriented_topology_constraints!(model, vars, G, H)
 
