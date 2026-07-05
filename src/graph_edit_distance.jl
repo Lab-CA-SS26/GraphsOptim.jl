@@ -1,10 +1,35 @@
+"""
+Control flow types to communicate the ILP formulation to the edit distance code. The
+subtypes are the different formulations, with `FORI` being the best performing one. 
+"""
 abstract type Formulation end
+"""
+Control flow type signifying the F1 ILP formulation. See also [`Formulation`](@ref).
+"""
 struct F1 <: Formulation end
+"""
+Control flow type signifying the F1' ILP formulation. See also [`Formulation`](@ref).
+"""
 struct F1prime <: Formulation end
+"""
+Control flow type signifying the F1+ ILP formulation. See also [`Formulation`](@ref).
+"""
 struct F1plus <: Formulation end
+"""
+Control flow type signifying the F2- ILP formulation. See also [`Formulation`](@ref).
+"""
 struct F2minus <: Formulation end
+"""
+Control flow type signifying the F2 ILP formulation. See also [`Formulation`](@ref).
+"""
 struct F2 <: Formulation end
+"""
+Control flow type signifying the F2+ ILP formulation. See also [`Formulation`](@ref).
+"""
 struct F2plus <: Formulation end
+"""
+Control flow type signifying the FORI ILP formulation. See also [`Formulation`](@ref).
+"""
 struct FORI <: Formulation end
 
 struct ReducedVariables
