@@ -98,6 +98,46 @@ graph_matching
 GraphsOptim.graph_matching_step_size
 ```
 
+## Graph edit distance
+```@docs
+edit_distance
+GraphsOptim.edit_distance!
+```
+
+The formulations implemented in the code are described in D'ascenzo, Andrea, et al. "Enhancing Graph Edit Distance Computation: Stronger and Orientation-based ILP Formulations." Proceedings of the VLDB Endowment 18.11 (2025): 4737-4749. The paper also containts a more detailed description of the graph edit distance problem.
+
+In the graph edit distance problem, we search for a minimum cost *edit path* between
+two graphs $G$ and $H$, that is a sequence of edit operations transforming $G$ to $H$. Valid
+edit operations are inserting or deleting a node or edge, or relabeling an existing node or
+edge.
+
+This formulation of the problem is easy to visualize, but not very suitable for implementing
+with integer programming. We thus use another, equivalent definition instead: a *node map*
+is a relation $\pi \subset V_{G+ \epsilon} \times V_{H + \epsilon}$ on the vertex sets
+augmented by $\epsilon$, in which 
+
+* each node $v \in V_G$ is mapped to exactly one element of $V_{H + \epsilon}$
+* each node $w \in V_H$ has exactly one preimage in $V_{G + \epsilon}$
+
+Being mapped to $\epsilon$ is equivalent to being deleted or created. We will not give a
+proof here, but for metric cost functions this is equivalent to the edit path formulation
+(and any cost function can be transformed into an equivalent metric one).
+
+This version of the problem is much better suited for integer programming, and is the
+foundation for all formulations implemented here. The formulations all use the same basic
+principle, defining binary variables to encode the mapping between nodes and edges,
+constraints that ensure the variables encode valid node and edge maps, and finally *topology
+constraints* which link node and edge variables based on the topology of the input graphs.
+The formulations differ in the exact variable layout and more importantly the topology
+constraints used. As seen in the paper mentioned above, the different topology constraints
+not only provide massive speedups in practice but their relaxations provide different
+bounds.
+
+The best formulation both in theory and practive orients the graphs to provide stricter
+topology constraints. The graph $G$ is oriented in a canonical way, while in $H$ there are
+forward and backwards edges for each undirected edge in the input. We can then additionally
+demand that edges be mapped consistently with their orientation.
+
 ## Coloring
 
 ```@docs
