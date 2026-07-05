@@ -68,7 +68,7 @@ end
 """
 Type used for functions applicable to both F1 and F2 derived formulations.
 """
-Variables = Union{ReducedVariables, FullVariables}
+Variables = Union{ReducedVariables,FullVariables}
 
 """
     create_model_vars_reduced!(model, G, H, bidirectional = false)
@@ -139,13 +139,13 @@ For details on valid varable dimensions see [`validate_cost_function`](@ref), fo
 constructing the canonical cost function see [`get_default_edit_costs`](@ref).
 """
 struct EditCosts
-    c_ik::Array{Number, 2}
+    c_ik::Array{Number,2}
     c_iε::Vector{Number}
     c_εk::Vector{Number}
     # note that for sparse graphs we might want to use a sparse array here
-    c_ijkl::Array{Number, 4}
-    c_ijε::Array{Number, 2}
-    c_εkl::Array{Number, 2}
+    c_ijkl::Array{Number,4}
+    c_ijε::Array{Number,2}
+    c_εkl::Array{Number,2}
 end
 
 """
@@ -180,7 +180,7 @@ function get_default_edit_costs(G::AbstractGraph, H::AbstractGraph)
         ones(Int, nv(H)),
         zeros(Int, nv(G), nv(G), nv(H), nv(H)),
         ones(Int, nv(G), nv(G)),
-        ones(Int, nv(H), nv(H))
+        ones(Int, nv(H), nv(H)),
     )
 end
 
@@ -240,8 +240,8 @@ Add node map constraints to model for F1 style formulations, i.e. each node is o
 to exactly one other node or deleted/created.
 """
 function add_node_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
-    @constraint(model, [i in 1:nv(G)], sum(vars.x[i,:]) + vars.nodeDelG[i] == 1)
-    @constraint(model, [j in 1:nv(H)], sum(vars.x[:,j]) + vars.nodeDelH[j] == 1)
+    @constraint(model, [i in 1:nv(G)], sum(vars.x[i, :]) + vars.nodeDelG[i] == 1)
+    @constraint(model, [j in 1:nv(H)], sum(vars.x[:, j]) + vars.nodeDelH[j] == 1)
 end
 
 """
