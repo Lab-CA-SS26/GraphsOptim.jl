@@ -235,16 +235,29 @@ Adds objective function for [`FORI`](@ref) formulation variables. The implementa
 """
 add_FORI_objective!(model, c::EditCosts, vars::OrientedVariables, G::AbstractGraph, H::AbstractGraph) = add_F2_objective!(model, c, ReducedVariables(vars.x, vars.z), G, H, true)
 
+"""
+Add node map constraints to model for F1 style formulations, i.e. each node is only mapped
+to exactly one other node or deleted/created.
+"""
 function add_node_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
     @constraint(model, [i in 1:nv(G)], sum(vars.x[i,:]) + vars.nodeDelG[i] == 1)
     @constraint(model, [j in 1:nv(H)], sum(vars.x[:,j]) + vars.nodeDelH[j] == 1)
 end
 
+"""
+Add node map constraints to model for F2 style and FORI formulations, i.e. each node is only
+mapped to at most one other node (not being mapped implies being deleted or created).
+"""
 function add_node_map_constraints!(model::GenericModel, vars::Union{ReducedVariables, OrientedVariables}, G, H)
     @constraint(model, [i in 1:nv(G)], sum(vars.x[i,:]) <= 1)
     @constraint(model, [j in 1:nv(H)], sum(vars.x[:,j]) <= 1)
 end
 
+"""
+Adds constraints on the edge map variables so each edge is mapped to exactly one other or be
+deleted/created. Note that these constraints are only necessary in F1 style formulations, as
+they are implied in F2 styled and FORI.
+"""
 function add_edge_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
     # Note that init=0 is necessary to allow for empty graph edge cases.
     @constraint(model, [i in vertices(G), j in vertices(G); has_edge(G, i, j) && i < j], 
