@@ -83,7 +83,9 @@ The variables model a full mapping between nodes and edges respectively.
 # Returns
 - [`OrientedVariables`](@ref) or [`ReducedVariables`](@ref) containing the variables.
 """
-function create_model_vars_reduced!(model::GenericModel, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool = false)
+function create_model_vars_reduced!(
+    model::GenericModel, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool=false
+)
     @variable(model, x[1:nv(G),1:nv(H)], Bin)
 
     # Use a sparse indexed edge variable set, so we can later sum over all neighbors with y[i, :, k, l].
@@ -108,7 +110,11 @@ end
 """
 Convenience function bind. See [`create_model_vars_reduced`](@ref).
 """
-create_model_vars_bidirectional!(model::GenericModel, G::AbstractGraph, H::AbstractGraph) = create_model_vars_reduced!(model, G, H, true)
+function create_model_vars_bidirectional!(
+    model::GenericModel, G::AbstractGraph, H::AbstractGraph
+)
+    return create_model_vars_reduced!(model, G, H, true)
+end
 
 """
     create_model_vars_full!(model, G, H, bidirectional = false)
@@ -187,7 +193,9 @@ end
 """
 Adds objective function for F1 style formulations to `model`.
 """
-function add_F1_objective!(model, c::EditCosts, vars::FullVariables, G::AbstractGraph, H::AbstractGraph)
+function add_F1_objective!(
+    model, c::EditCosts, vars::FullVariables, G::AbstractGraph, H::AbstractGraph
+)
     @objective(model, Min, 
                sum(vars.x[i, k] * c.c_ik[i, k] for i in 1:nv(G) for k in 1:nv(H)) + 
                sum(vars.nodeDelG[i] * c.c_iε[i] for i in 1:nv(G)) + 
@@ -209,7 +217,14 @@ end
 Adds objective function for F2 style formulations to `model`. `bidirectional` is used to
 support input for [`FORI`](@ref) variables.
 """
-function add_F2_objective!(model, c::EditCosts, vars::ReducedVariables, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool = false)
+function add_F2_objective!(
+    model,
+    c::EditCosts,
+    vars::ReducedVariables,
+    G::AbstractGraph,
+    H::AbstractGraph,
+    bidirectional::Bool=false,
+)
     # Note that init=0 is necessary to allow for empty graph edge cases.
     K = sum(c.c_iε[i] for i in 1:nv(G); init=0) + 
         sum(c.c_εk[k] for k in 1:nv(H); init=0) + 
@@ -233,7 +248,11 @@ end
 Adds objective function for [`FORI`](@ref) formulation variables. The implementation is in
 [`add_F2_objective`](@ref).
 """
-add_FORI_objective!(model, c::EditCosts, vars::OrientedVariables, G::AbstractGraph, H::AbstractGraph) = add_F2_objective!(model, c, ReducedVariables(vars.x, vars.z), G, H, true)
+function add_FORI_objective!(
+    model, c::EditCosts, vars::OrientedVariables, G::AbstractGraph, H::AbstractGraph
+)
+    return add_F2_objective!(model, c, ReducedVariables(vars.x, vars.z), G, H, true)
+end
 
 """
 Add node map constraints to model for F1 style formulations, i.e. each node is only mapped
@@ -248,7 +267,9 @@ end
 Add node map constraints to model for F2 style and FORI formulations, i.e. each node is only
 mapped to at most one other node (not being mapped implies being deleted or created).
 """
-function add_node_map_constraints!(model::GenericModel, vars::Union{ReducedVariables, OrientedVariables}, G, H)
+function add_node_map_constraints!(
+    model::GenericModel, vars::Union{ReducedVariables,OrientedVariables}, G, H
+)
     @constraint(model, [i in 1:nv(G)], sum(vars.x[i,:]) <= 1)
     @constraint(model, [j in 1:nv(H)], sum(vars.x[:,j]) <= 1)
 end
@@ -289,7 +310,9 @@ end
 Add improved topology constraints, replacing [`add_simple_topology_constraints`](@ref): 
 If edge `ij` is mapped to any edge incident to `k`, then `i` or `j` must be mapped to `k`.
 """
-function add_improved_topology_constraints_G_to_H!(model::GenericModel, vars::Variables, G, H)
+function add_improved_topology_constraints_G_to_H!(
+    model::GenericModel, vars::Variables, G, H
+)
     @constraint(model, [
                 i in vertices(G), j in vertices(G), 
                 k in vertices(H); 
@@ -301,7 +324,9 @@ end
 Add topology constraints mirroring [`add_improved_topology_constraints_G_to_H`](@ref), but backwards:
 If any edge incident to `i` is mapped to `kl`, then `i` must be mapped to `k` or `l`.
 """
-function add_improved_topology_constraints_H_to_G!(model::GenericModel, vars::Variables, G, H)
+function add_improved_topology_constraints_H_to_G!(
+    model::GenericModel, vars::Variables, G, H
+)
     @constraint(model, [
                 k in vertices(H), l in vertices(H), 
                 i in vertices(G); 
@@ -315,7 +340,9 @@ Add topology constraints for FORI. Uses the same implictions as used in
 [`add_improved_topology_constraints_H_to_G`](@ref), but since edges in `G` are oriented and
 each edge in `H` has two possible orientations, the implications are more precise.
 """
-function add_oriented_topology_constraints!(model::GenericModel, vars::OrientedVariables, G, H)
+function add_oriented_topology_constraints!(
+    model::GenericModel, vars::OrientedVariables, G, H
+)
     @constraint(model, [
                 k in vertices(H),
                 i in vertices(G), j in vertices(G); 
@@ -342,7 +369,9 @@ formulation has its own method implementing the required variables, constraints 
 """
 function construct_formulation! end
 
-function construct_formulation!(::Type{F1}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(
+    ::Type{F1}, model, G, H, c::EditCosts=get_default_edit_costs(G, H)
+)
     vars = create_model_vars_full!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
@@ -353,7 +382,9 @@ function construct_formulation!(::Type{F1}, model, G, H, c::EditCosts = get_defa
     add_F1_objective!(model, c, vars, G, H)
 end
 
-function construct_formulation!(::Type{F2minus}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(
+    ::Type{F2minus}, model, G, H, c::EditCosts=get_default_edit_costs(G, H)
+)
     vars = create_model_vars_reduced!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
@@ -364,7 +395,9 @@ function construct_formulation!(::Type{F2minus}, model, G, H, c::EditCosts = get
     add_F2_objective!(model, c, vars, G, H)
 end
 
-function construct_formulation!(::Type{F2}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(
+    ::Type{F2}, model, G, H, c::EditCosts=get_default_edit_costs(G, H)
+)
     vars = create_model_vars_reduced!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
@@ -379,7 +412,9 @@ function construct_formulation!(::Type{F2}, model, G, H, c::EditCosts = get_defa
     add_F2_objective!(model, c, vars, G, H)
 end
 
-function construct_formulation!(::Type{F2plus}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(
+    ::Type{F2plus}, model, G, H, c::EditCosts=get_default_edit_costs(G, H)
+)
     vars = create_model_vars_reduced!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
@@ -391,7 +426,9 @@ function construct_formulation!(::Type{F2plus}, model, G, H, c::EditCosts = get_
     add_F2_objective!(model, c, vars, G, H)
 end
 
-function construct_formulation!(::Type{F1prime}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(
+    ::Type{F1prime}, model, G, H, c::EditCosts=get_default_edit_costs(G, H)
+)
     vars = create_model_vars_full!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
@@ -402,7 +439,9 @@ function construct_formulation!(::Type{F1prime}, model, G, H, c::EditCosts = get
     add_F1_objective!(model, c, vars, G, H)
 end
 
-function construct_formulation!(::Type{F1plus}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(
+    ::Type{F1plus}, model, G, H, c::EditCosts=get_default_edit_costs(G, H)
+)
     vars = create_model_vars_full!(model, G, H)
 
     add_node_map_constraints!(model, vars, G, H)
@@ -414,7 +453,9 @@ function construct_formulation!(::Type{F1plus}, model, G, H, c::EditCosts = get_
     add_F1_objective!(model, c, vars, G, H)
 end
 
-function construct_formulation!(::Type{FORI}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
+function construct_formulation!(
+    ::Type{FORI}, model, G, H, c::EditCosts=get_default_edit_costs(G, H)
+)
     vars = create_model_vars_bidirectional!(model, G, H)
     add_node_map_constraints!(model, vars, G, H)
     # Edgemap constraints are implied, so we can skip them.
@@ -433,7 +474,13 @@ Modify a JuMP model to compute the graph edit distance between undirected graphs
 given cost function `c` using formulation `formulation`. See [`edit_distance`](@ref) for
 more details.
 """
-function edit_distance!(model, G::SimpleGraph, H::SimpleGraph; c::EditCosts = get_default_edit_costs(G, H), formulation::Type{<:Formulation} = FORI)
+function edit_distance!(
+    model,
+    G::SimpleGraph,
+    H::SimpleGraph;
+    c::EditCosts=get_default_edit_costs(G, H),
+    formulation::Type{<:Formulation}=FORI,
+)
     if is_directed(G) || is_directed(H)
         error("This version of the graph edit distance only accepts undirected graphs.")
     end
@@ -461,7 +508,13 @@ Compute the graph edit distance between undirected graphs `G` and `H` given edit
 # Returns
 - `Matrix{Int}`: the node map matrix, which encodes the optimal edit path
 """
-function edit_distance(G::SimpleGraph, H::SimpleGraph; c::EditCosts = get_default_edit_costs(G, H), formulation::Type{<:Formulation} = FORI, optimizer = HiGHS.Optimizer)
+function edit_distance(
+    G::SimpleGraph,
+    H::SimpleGraph;
+    c::EditCosts=get_default_edit_costs(G, H),
+    formulation::Type{<:Formulation}=FORI,
+    optimizer=HiGHS.Optimizer,
+)
     model = Model(optimizer)
     set_silent(model)
     edit_distance!(model, G, H; c=c, formulation=formulation)
