@@ -184,6 +184,9 @@ function get_default_edit_costs(G::AbstractGraph, H::AbstractGraph)
     )
 end
 
+"""
+Adds objective function for F1 style formulations to `model`.
+"""
 function add_F1_objective!(model, c::EditCosts, vars::FullVariables, G::AbstractGraph, H::AbstractGraph)
     @objective(model, Min, 
                sum(vars.x[i, k] * c.c_ik[i, k] for i in 1:nv(G) for k in 1:nv(H)) + 
@@ -202,6 +205,10 @@ function add_F1_objective!(model, c::EditCosts, vars::FullVariables, G::Abstract
                )
 end
 
+"""
+Adds objective function for F2 style formulations to `model`. `bidirectional` is used to
+support input for [`FORI`](@ref) variables.
+"""
 function add_F2_objective!(model, c::EditCosts, vars::ReducedVariables, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool = false)
     # Note that init=0 is necessary to allow for empty graph edge cases.
     K = sum(c.c_iε[i] for i in 1:nv(G); init=0) + 
@@ -222,6 +229,10 @@ function add_F2_objective!(model, c::EditCosts, vars::ReducedVariables, G::Abstr
                )
 end
 
+"""
+Adds objective function for [`FORI`](@ref) formulation variables. The implementation is in
+[`add_F2_objective`](@ref).
+"""
 add_FORI_objective!(model, c::EditCosts, vars::OrientedVariables, G::AbstractGraph, H::AbstractGraph) = add_F2_objective!(model, c, ReducedVariables(vars.x, vars.z), G, H, true)
 
 function add_node_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
