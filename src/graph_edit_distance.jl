@@ -176,6 +176,7 @@ function validate_cost_function(c::EditCosts, G::AbstractGraph, H::AbstractGraph
     @assert size(c.c_ijkl) == (nv(G), nv(G), nv(H), nv(H))
     @assert size(c.c_ijε) == (nv(G), nv(G))
     @assert size(c.c_εkl) == (nv(H), nv(H))
+    return nothing
 end
 
 """
@@ -219,6 +220,7 @@ function add_F1_objective!(
                 l in 1:nv(H) if has_edge(H, k, l) && k < l
             )
     )
+    return nothing
 end
 
 """
@@ -261,6 +263,7 @@ function add_F2_objective!(
             ) +
             K
     )
+    return nothing
 end
 
 """
@@ -280,6 +283,7 @@ to exactly one other node or deleted/created.
 function add_node_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
     @constraint(model, [i in 1:nv(G)], sum(vars.x[i, :]) + vars.nodeDelG[i] == 1)
     @constraint(model, [j in 1:nv(H)], sum(vars.x[:, j]) + vars.nodeDelH[j] == 1)
+    return nothing
 end
 
 """
@@ -291,6 +295,7 @@ function add_node_map_constraints!(
 )
     @constraint(model, [i in 1:nv(G)], sum(vars.x[i, :]) <= 1)
     @constraint(model, [j in 1:nv(H)], sum(vars.x[:, j]) <= 1)
+    return nothing
 end
 
 """
@@ -310,6 +315,7 @@ function add_edge_map_constraints!(model::GenericModel, vars::FullVariables, G, 
         [k in vertices(H), l in vertices(H); has_edge(H, k, l) && k < l],
         sum(vars.y[:, :, k, l]; init=0) + vars.edgeDelH[k, l] == 1
     )
+    return nothing
 end
 
 """
@@ -339,6 +345,7 @@ function add_simple_topology_constraints!(model::GenericModel, vars::Variables, 
         ],
         vars.y[i, j, k, l] <= vars.x[i, l] + vars.x[j, l]
     )
+    return nothing
 end
 
 """
@@ -354,6 +361,7 @@ function add_improved_topology_constraints_G_to_H!(
         sum(vars.y[i, j, k, :]; init=0) + sum(vars.y[i, j, :, k]; init=0) <=
             vars.x[i, k] + vars.x[j, k]
     )
+    return nothing
 end
 
 """
@@ -370,6 +378,7 @@ function add_improved_topology_constraints_H_to_G!(
         sum(vars.y[i, :, k, l]; init=0) + sum(vars.y[:, i, k, l]; init=0) <=
             vars.x[i, k] + vars.x[i, l]
     )
+    return nothing
 end
 
 """
@@ -396,6 +405,7 @@ function add_oriented_topology_constraints!(
         [k in vertices(H), l in vertices(H), i in vertices(G); has_edge(H, k, l)],
         sum(vars.z[i, :, k, l]; init=0) + sum(vars.z[:, i, l, k]; init=0) <= vars.x[i, k]
     )
+    return nothing
 end
 
 """
@@ -419,6 +429,7 @@ function construct_formulation!(
     add_simple_topology_constraints!(model, vars, G, H)
 
     add_F1_objective!(model, c, vars, G, H)
+    return nothing
 end
 
 function construct_formulation!(
@@ -432,6 +443,7 @@ function construct_formulation!(
     add_simple_topology_constraints!(model, vars, G, H)
 
     add_F2_objective!(model, c, vars, G, H)
+    return nothing
 end
 
 function construct_formulation!(
@@ -449,6 +461,7 @@ function construct_formulation!(
     end
 
     add_F2_objective!(model, c, vars, G, H)
+    return nothing
 end
 
 function construct_formulation!(
@@ -463,6 +476,7 @@ function construct_formulation!(
     add_improved_topology_constraints_H_to_G!(model, vars, G, H)
 
     add_F2_objective!(model, c, vars, G, H)
+    return nothing
 end
 
 function construct_formulation!(
@@ -476,6 +490,7 @@ function construct_formulation!(
     add_improved_topology_constraints_G_to_H!(model, vars, G, H)
 
     add_F1_objective!(model, c, vars, G, H)
+    return nothing
 end
 
 function construct_formulation!(
@@ -490,6 +505,7 @@ function construct_formulation!(
     add_improved_topology_constraints_H_to_G!(model, vars, G, H)
 
     add_F1_objective!(model, c, vars, G, H)
+    return nothing
 end
 
 function construct_formulation!(
@@ -502,6 +518,7 @@ function construct_formulation!(
     add_oriented_topology_constraints!(model, vars, G, H)
 
     add_FORI_objective!(model, c, vars, G, H)
+    return nothing
 end
 
 """
@@ -524,6 +541,7 @@ function edit_distance!(
         error("This version of the graph edit distance only accepts undirected graphs.")
     end
     construct_formulation!(formulation, model, G, H, c)
+    return nothing
 end
 
 """
