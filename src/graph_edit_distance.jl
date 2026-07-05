@@ -32,11 +32,20 @@ Control flow type signifying the FORI ILP formulation. See also [`Formulation`](
 """
 struct FORI <: Formulation end
 
+"""
+Struct maintaining the variable references for formulations [`F2minus`](@ref), [`F2`](@ref)
+and [`F2plus`](@ref). Compared to [`FullVariables`](@ref), the deletion variables are
+inferred.
+"""
 struct ReducedVariables
     x::Matrix{VariableRef}
     y
 end
 
+"""
+Struct maintaining the variable references for formulations [`F1`](@ref), [`F1prime`](@ref)
+and [`F1plus`](@ref).
+"""
 struct FullVariables
     x::Matrix{VariableRef}
     y
@@ -46,11 +55,19 @@ struct FullVariables
     edgeDelH
 end
 
+"""
+Struct maintaining the variable references for formulation [`FORI`](@ref). This formulation
+implicitly adds two oriented edges for each edge the second graph to improve topology
+constraints, which is reflected in the edge map variables.
+"""
 struct OrientedVariables
     x::Matrix{VariableRef}
     z
 end
 
+"""
+Type used for functions applicable to both F1 and F2 derived formulations.
+"""
 Variables = Union{ReducedVariables, FullVariables}
 
 function create_model_vars_reduced!(model::GenericModel, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool = false)
