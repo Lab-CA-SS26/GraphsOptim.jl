@@ -206,6 +206,15 @@ function add_oriented_topology_constraints!(model::GenericModel, vars::OrientedV
                 sum(vars.z[i, :, k, l]; init=0) + sum(vars.z[:, i, l, k]; init=0) <= vars.x[i, k])
 end
 
+"""
+    construct_formulation!(::Type{<:Formulation}, model, G, H;
+        c)
+
+Modify `model` to use a specific formulation to solve the graph edit distance problem. Each
+formulation has its own method implementing the required variables, constraints and objective.
+"""
+function construct_formulation! end
+
 function construct_formulation!(::Type{F1}, model, G, H, c::EditCosts = get_default_edit_costs(G, H))
     vars = create_model_vars_full!(model, G, H)
 
