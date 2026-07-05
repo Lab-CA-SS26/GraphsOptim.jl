@@ -266,6 +266,10 @@ function add_edge_map_constraints!(model::GenericModel, vars::FullVariables, G, 
                 sum(vars.y[:, :, k, l]; init=0) + vars.edgeDelH[k, l] == 1)
 end
 
+"""
+Add simplest form of topology constraints: If edge `ij` is mapped to `kl`, then `i` or `j` must map
+to `k`, and `i` or `j` must map to `l`.
+"""
 function add_simple_topology_constraints!(model::GenericModel, vars::Variables, G, H)
     @constraint(model, [
                 i in vertices(G), j in vertices(G), 
@@ -281,6 +285,10 @@ function add_simple_topology_constraints!(model::GenericModel, vars::Variables, 
                 vars.y[i, j, k, l] <= vars.x[i, l] + vars.x[j, l])
 end
 
+"""
+Add improved topology constraints, replacing [`add_simple_topology_constraints`](@ref): 
+If edge `ij` is mapped to any edge incident to `k`, then `i` or `j` must be mapped to `k`.
+"""
 function add_improved_topology_constraints_G_to_H!(model::GenericModel, vars::Variables, G, H)
     @constraint(model, [
                 i in vertices(G), j in vertices(G), 
@@ -289,6 +297,10 @@ function add_improved_topology_constraints_G_to_H!(model::GenericModel, vars::Va
                 sum(vars.y[i, j, k, :]; init=0) + sum(vars.y[i, j, :, k]; init=0) <= vars.x[i, k] + vars.x[j, k])
 end
 
+"""
+Add topology constraints mirroring [`add_improved_topology_constraints_G_to_H`](@ref), but backwards:
+If any edge incident to `i` is mapped to `kl`, then `i` must be mapped to `k` or `l`.
+"""
 function add_improved_topology_constraints_H_to_G!(model::GenericModel, vars::Variables, G, H)
     @constraint(model, [
                 k in vertices(H), l in vertices(H), 
@@ -297,9 +309,13 @@ function add_improved_topology_constraints_H_to_G!(model::GenericModel, vars::Va
                 sum(vars.y[i, :, k, l]; init=0) + sum(vars.y[:, i, k, l]; init=0) <= vars.x[i, k] + vars.x[i, l])
 end
 
+"""
+Add topology constraints for FORI. Uses the same implictions as used in
+[`add_improved_topology_constraints_G_to_H`](@ref) and
+[`add_improved_topology_constraints_H_to_G`](@ref), but since edges in `G` are oriented and
+each edge in `H` has two possible orientations, the implications are more precise.
+"""
 function add_oriented_topology_constraints!(model::GenericModel, vars::OrientedVariables, G, H)
-    # combines the constraints of add_improved_topology_constraints_G_to_H! and add_improved_topology_constraints_H_to_G!
-    # but can be more precise due to the directionality of H
     @constraint(model, [
                 k in vertices(H),
                 i in vertices(G), j in vertices(G); 
