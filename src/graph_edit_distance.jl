@@ -88,7 +88,7 @@ function create_model_vars_reduced!(
 )
     @variable(model, x[1:nv(G), 1:nv(H)], Bin)
 
-    # Use a sparse indexed edge variable set, so we can later sum over all neighbors with y[i, :, k, l].
+    # Use a sparse indexed edge variable set, to later do partial sums y[i, :, k, l].
     # Edge variables are always oriented to avoid ambiguity.
     @variable(
         model,
@@ -159,7 +159,8 @@ end
 """
     validate_cost_function(c, G, H)
 
-Validates that cost function `c` has appropriate dimensions for graphs `G` and `H`. This means
+Validates that cost function `c` has appropriate dimensions for graphs `G` and `H`. This 
+means
 
 - `c.c_ik` has a cost for each mapping `i ∈ V(G)` to `k ∈ V(H)`
 - `c.c_iε` has a cost for deleting each `i ∈ V(G)`
@@ -312,8 +313,8 @@ function add_edge_map_constraints!(model::GenericModel, vars::FullVariables, G, 
 end
 
 """
-Add simplest form of topology constraints: If edge `ij` is mapped to `kl`, then `i` or `j` must map
-to `k`, and `i` or `j` must map to `l`.
+Add simplest form of topology constraints: If edge `ij` is mapped to `kl`, then `i` or `j`
+must map to `k`, and `i` or `j` must map to `l`.
 """
 function add_simple_topology_constraints!(model::GenericModel, vars::Variables, G, H)
     @constraint(
@@ -356,8 +357,9 @@ function add_improved_topology_constraints_G_to_H!(
 end
 
 """
-Add topology constraints mirroring [`add_improved_topology_constraints_G_to_H`](@ref), but backwards:
-If any edge incident to `i` is mapped to `kl`, then `i` must be mapped to `k` or `l`.
+Add topology constraints mirroring [`add_improved_topology_constraints_G_to_H`](@ref), but
+backwards: If any edge incident to `i` is mapped to `kl`, then `i` must be mapped to `k` or
+`l`.
 """
 function add_improved_topology_constraints_H_to_G!(
     model::GenericModel, vars::Variables, G, H
@@ -401,7 +403,8 @@ end
         c)
 
 Modify `model` to use a specific formulation to solve the graph edit distance problem. Each
-formulation has its own method implementing the required variables, constraints and objective.
+formulation has its own method implementing the required variables, constraints and
+objective.
 """
 function construct_formulation! end
 
@@ -558,6 +561,6 @@ function edit_distance(
     if termination_status(model) != OPTIMAL
         error("Graph edit distance was not solved optimally.")
     end
-    node_matching = convert(Matrix{Int}, model[:x] |> value)
+    node_matching = convert(Matrix{Int}, value(model[:x]))
     return node_matching
 end
