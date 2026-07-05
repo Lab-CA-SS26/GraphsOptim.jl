@@ -70,6 +70,19 @@ Type used for functions applicable to both F1 and F2 derived formulations.
 """
 Variables = Union{ReducedVariables, FullVariables}
 
+"""
+    create_model_vars_reduced!(model, G, H, bidirectional = false)
+
+Adds necessary variables for edit distance computation between `G` and `H` to `model`. If
+`bidirectional` is false, for formulations [`F2minus`](@ref), [`F2`](@ref),
+[`F2plus`](@ref). If `bidirectional` is true, `H` is bidirected and the variables are used
+for the [`FORI`](@ref) formulation.
+
+The variables model a full mapping between nodes and edges respectively.
+
+# Returns
+- [`OrientedVariables`](@ref) or [`ReducedVariables`](@ref) containing the variables.
+"""
 function create_model_vars_reduced!(model::GenericModel, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool = false)
     @variable(model, x[1:nv(G),1:nv(H)], Bin)
 
@@ -92,8 +105,21 @@ function create_model_vars_reduced!(model::GenericModel, G::AbstractGraph, H::Ab
     end
 end
 
+"""
+Convenience function bind. See [`create_model_vars_reduced`](@ref).
+"""
 create_model_vars_bidirectional!(model::GenericModel, G::AbstractGraph, H::AbstractGraph) = create_model_vars_reduced!(model, G, H, true)
 
+"""
+    create_model_vars_full!(model, G, H, bidirectional = false)
+
+Adds necessary variables for edit distance computation between `G` and `H` to `model` for
+formulations [`F1`](@ref), [`F1prime`](@ref) and [`F1plus`](@ref).
+
+In addition to the normal node and edge map variables (see
+[`create_model_vars_reduced`](@ref)), these formulations explicitly have variables to model
+nodes and edges being deleted or added.
+"""
 function create_model_vars_full!(model::GenericModel, G::AbstractGraph, H::AbstractGraph)
     vars = create_model_vars_reduced!(model, G, H)
     @variable(model, nodeDelG[1:nv(G)], Bin)
