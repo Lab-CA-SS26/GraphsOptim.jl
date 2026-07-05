@@ -131,7 +131,13 @@ function create_model_vars_full!(model::GenericModel, G::AbstractGraph, H::Abstr
     return FullVariables(vars.x, vars.y, nodeDelG, nodeDelH, edgeDelG, edgeDelH)
 end
 
-# based on FORI implementation of the cost function
+"""
+Models arbitrary edit costs between two graphs. The implementation is taken from
+[FORI-GED](https://github.com/meffertj/FORI-GED).
+
+For details on valid varable dimensions see [`validate_cost_function`](@ref), for
+constructing the canonical cost function see [`get_default_edit_costs`](@ref).
+"""
 struct EditCosts
     c_ik::Array{Number, 2}
     c_iε::Vector{Number}
@@ -142,8 +148,18 @@ struct EditCosts
     c_εkl::Array{Number, 2}
 end
 
-# asserts that the given cost function could belong to G and H in terms of their dimensions
-# This function simultaneously serves as a documentation on EditCosts
+"""
+    validate_cost_function(c, G, H)
+
+Validates that cost function `c` has appropriate dimensions for graphs `G` and `H`. This means
+
+- `c.c_ik` has a cost for each mapping `i ∈ V(G)` to `k ∈ V(H)`
+- `c.c_iε` has a cost for deleting each `i ∈ V(G)`
+- `c.c_εk` has a cost for creating each `k ∈ V(H)`
+- `c.c_ijkl` has a cost for each mapping from `ij ∈ E(G)` to  `kl ∈ E(H)`
+- `c.c_ijε` has a cost for deleting each `ij ∈ E(G)`
+- `c.c_εkl` has a cost for creating each `kl ∈ E(H)`
+"""
 function validate_cost_function(c::EditCosts, G::AbstractGraph, H::AbstractGraph)
     @assert size(c.c_ik) == (nv(G), nv(H))
     @assert size(c.c_iε) == (nv(G),)
@@ -153,7 +169,10 @@ function validate_cost_function(c::EditCosts, G::AbstractGraph, H::AbstractGraph
     @assert size(c.c_εkl) == (nv(H), nv(H))
 end
 
-# returns the canonical "deleting things costs 1" cost function
+"""
+Returns the cost function where mappings are free, deleting or creating things costs
+uniformly 1. This corresponds to "number of edits needed to go from `G` to `H`".
+"""
 function get_default_edit_costs(G::AbstractGraph, H::AbstractGraph)
     return EditCosts(
         zeros(Int, nv(G), nv(H)),
