@@ -31,7 +31,7 @@ export fractional_chromatic_number, fractional_clique_number
 export shortest_path
 export maximum_weight_clique
 
-export edit_distance!, F1, F1prime, F1plus, F2, F2minus, F2plus, FORI
+export edit_distance, F1, F1prime, F1plus, F2, F2minus, F2plus, FORI
 
 include("utils.jl")
 include("flow.jl")

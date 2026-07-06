@@ -143,7 +143,7 @@ end
 Models arbitrary edit costs between two graphs. The implementation is taken from
 [FORI-GED](https://github.com/meffertj/FORI-GED).
 
-For details on valid varable dimensions see [`validate_cost_function`](@ref), for
+For details on valid variable dimensions see [`validate_cost_function`](@ref), for
 constructing the canonical cost function see [`get_default_edit_costs`](@ref).
 """
 struct EditCosts
@@ -552,14 +552,15 @@ end
 Compute the graph edit distance between undirected graphs `G` and `H` given edit costs `c`.
 
 # Arguments
-- `G::Graphs.SimpleGraph`: graph
-- `H::Graphs.SimpleGraph`: graph
+- `G::Graphs.SimpleGraph`
+- `H::Graphs.SimpleGraph`
 
 # Keywords
-- `c::EditCosts`: pairwise edit cost struct for the graphs. See [`EditCosts`](@ref). 
-    Defaults to the canonical edit costs [`get_default_edit_costs`](@ref)
+- `c::EditCosts`: pairwise edit cost struct for the graphs. See
+    [`GraphsOptim.EditCosts`](@ref). Defaults to the canonical edit costs
+    [`GraphsOptim.get_default_edit_costs`](@ref).
 - `formulation::Type{<:Formulation}`: the ILP formulation to use. Defaults to the most 
-    powerful [`FORI`](@ref)
+    powerful `FORI`.
 - `optimizer`: JuMP-compatible solver (default is `HiGHS.Optimizer`)
 
 # Returns

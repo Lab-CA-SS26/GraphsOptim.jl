@@ -104,7 +104,9 @@ edit_distance
 GraphsOptim.edit_distance!
 ```
 
-The formulations implemented in the code are described in D'ascenzo, Andrea, et al. "Enhancing Graph Edit Distance Computation: Stronger and Orientation-based ILP Formulations." Proceedings of the VLDB Endowment 18.11 (2025): 4737-4749. The paper also containts a more detailed description of the graph edit distance problem.
+### Mathematical Details
+
+The formulations implemented in the code are described in `D'ascenzo, Andrea, et al. "Enhancing Graph Edit Distance Computation: Stronger and Orientation-based ILP Formulations." Proceedings of the VLDB Endowment 18.11 (2025): 4737-4749`. The paper also containts a more detailed description of the graph edit distance problem.
 
 In the graph edit distance problem, we search for a minimum cost *edit path* between
 two graphs $G$ and $H$, that is a sequence of edit operations transforming $G$ to $H$. Valid
@@ -137,6 +139,21 @@ The best formulation both in theory and practive orients the graphs to provide s
 topology constraints. The graph $G$ is oriented in a canonical way, while in $H$ there are
 forward and backwards edges for each undirected edge in the input. We can then additionally
 demand that edges be mapped consistently with their orientation.
+
+### Function documentation for advanced use
+```@docs
+GraphsOptim.EditCosts
+GraphsOptim.get_default_edit_costs
+GraphsOptim.validate_cost_function
+GraphsOptim.Formulation
+GraphsOptim.F1
+GraphsOptim.F1prime
+GraphsOptim.F1plus
+GraphsOptim.F2minus
+GraphsOptim.F2
+GraphsOptim.F2plus
+GraphsOptim.FORI
+```
 
 ## Coloring
 
