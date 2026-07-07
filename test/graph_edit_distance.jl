@@ -17,7 +17,29 @@ all_formulations = [F1, F1prime, F1plus, F2, F2minus, F2plus, FORI]
         set_silent(model)
         optimize!(model)
         @test objective_value(model) == 1
+        # testing the normal entrypoint
+        @test GraphsOptim.edit_distance(G, H).objective_value == 1
     end
+end
+
+@testset "Cost function validations" begin
+    G = Graph(3)
+    add_edge!(G, 1, 2)
+
+    H = Graph(3)
+    add_edge!(H, 2, 3)
+    add_edge!(H, 1, 3)
+
+    c = GraphsOptim.get_default_edit_costs(G, H)
+    @test isnothing(GraphsOptim.validate_cost_function(c, G, H))
+
+    broken_c = GraphsOptim.EditCosts(
+        zeros(Int, 1, 2), c.c_iε, c.c_εk, c.c_ijkl, c.c_ijε, c.c_εkl
+    )
+    @test_throws AssertionError GraphsOptim.validate_cost_function(broken_c, G, H)
+
+    Hprime = Graph(4)
+    @test_throws AssertionError GraphsOptim.validate_cost_function(c, G, Hprime)
 end
 
 @testset "Cost Functions Simple" begin
@@ -146,4 +168,10 @@ end
         optimize!(model)
         @test objective_value(model) == 3
     end
+end
+
+@testset "Invalid Input" begin
+    G = Graph(3)
+    H = DiGraph(4)
+    @test_throws MethodError GraphsOptim.edit_distance(G, H)
 end
