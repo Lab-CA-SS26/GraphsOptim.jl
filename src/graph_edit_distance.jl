@@ -84,7 +84,7 @@ The variables model a full mapping between nodes and edges respectively.
 - [`OrientedVariables`](@ref) or [`ReducedVariables`](@ref) containing the variables.
 """
 function create_model_vars_reduced!(
-    model::GenericModel, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool=false
+    model::Model, G::AbstractGraph, H::AbstractGraph, bidirectional::Bool=false
 )
     @variable(model, x[1:nv(G), 1:nv(H)], Bin)
 
@@ -112,9 +112,7 @@ end
 """
 Convenience function bind. See [`create_model_vars_reduced`](@ref).
 """
-function create_model_vars_bidirectional!(
-    model::GenericModel, G::AbstractGraph, H::AbstractGraph
-)
+function create_model_vars_bidirectional!(model::Model, G::AbstractGraph, H::AbstractGraph)
     return create_model_vars_reduced!(model, G, H, true)
 end
 
@@ -128,7 +126,7 @@ In addition to the normal node and edge map variables (see
 [`create_model_vars_reduced`](@ref)), these formulations explicitly have variables to model
 nodes and edges being deleted or added.
 """
-function create_model_vars_full!(model::GenericModel, G::AbstractGraph, H::AbstractGraph)
+function create_model_vars_full!(model::Model, G::AbstractGraph, H::AbstractGraph)
     vars = create_model_vars_reduced!(model, G, H)
     @variable(model, nodeDelG[1:nv(G)], Bin)
     @variable(model, nodeDelH[1:nv(H)], Bin)
@@ -280,7 +278,7 @@ end
 Add node map constraints to model for F1 style formulations, i.e. each node is only mapped
 to exactly one other node or deleted/created.
 """
-function add_node_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
+function add_node_map_constraints!(model::Model, vars::FullVariables, G, H)
     @constraint(model, [i in 1:nv(G)], sum(vars.x[i, :]) + vars.nodeDelG[i] == 1)
     @constraint(model, [j in 1:nv(H)], sum(vars.x[:, j]) + vars.nodeDelH[j] == 1)
     return nothing
@@ -291,7 +289,7 @@ Add node map constraints to model for F2 style and FORI formulations, i.e. each 
 mapped to at most one other node (not being mapped implies being deleted or created).
 """
 function add_node_map_constraints!(
-    model::GenericModel, vars::Union{ReducedVariables,OrientedVariables}, G, H
+    model::Model, vars::Union{ReducedVariables,OrientedVariables}, G, H
 )
     @constraint(model, [i in 1:nv(G)], sum(vars.x[i, :]) <= 1)
     @constraint(model, [j in 1:nv(H)], sum(vars.x[:, j]) <= 1)
@@ -303,7 +301,7 @@ Adds constraints on the edge map variables so each edge is mapped to exactly one
 deleted/created. Note that these constraints are only necessary in F1 style formulations, as
 they are implied in F2 styled and FORI.
 """
-function add_edge_map_constraints!(model::GenericModel, vars::FullVariables, G, H)
+function add_edge_map_constraints!(model::Model, vars::FullVariables, G, H)
     # Note that init=0 is necessary to allow for empty graph edge cases.
     @constraint(
         model,
@@ -322,7 +320,7 @@ end
 Add simplest form of topology constraints: If edge `ij` is mapped to `kl`, then `i` or `j`
 must map to `k`, and `i` or `j` must map to `l`.
 """
-function add_simple_topology_constraints!(model::GenericModel, vars::Variables, G, H)
+function add_simple_topology_constraints!(model::Model, vars::Variables, G, H)
     @constraint(
         model,
         [
@@ -352,9 +350,7 @@ end
 Add improved topology constraints, replacing [`add_simple_topology_constraints`](@ref): 
 If edge `ij` is mapped to any edge incident to `k`, then `i` or `j` must be mapped to `k`.
 """
-function add_improved_topology_constraints_G_to_H!(
-    model::GenericModel, vars::Variables, G, H
-)
+function add_improved_topology_constraints_G_to_H!(model::Model, vars::Variables, G, H)
     @constraint(
         model,
         [i in vertices(G), j in vertices(G), k in vertices(H); has_edge(G, i, j) && i < j],
@@ -369,9 +365,7 @@ Add topology constraints mirroring [`add_improved_topology_constraints_G_to_H`](
 backwards: If any edge incident to `i` is mapped to `kl`, then `i` must be mapped to `k` or
 `l`.
 """
-function add_improved_topology_constraints_H_to_G!(
-    model::GenericModel, vars::Variables, G, H
-)
+function add_improved_topology_constraints_H_to_G!(model::Model, vars::Variables, G, H)
     @constraint(
         model,
         [k in vertices(H), l in vertices(H), i in vertices(G); has_edge(H, k, l) && k < l],
@@ -387,9 +381,7 @@ Add topology constraints for FORI. Uses the same implictions as used in
 [`add_improved_topology_constraints_H_to_G`](@ref), but since edges in `G` are oriented and
 each edge in `H` has two possible orientations, the implications are more precise.
 """
-function add_oriented_topology_constraints!(
-    model::GenericModel, vars::OrientedVariables, G, H
-)
+function add_oriented_topology_constraints!(model::Model, vars::OrientedVariables, G, H)
     @constraint(
         model,
         [k in vertices(H), i in vertices(G), j in vertices(G); has_edge(G, i, j) && i < j],
