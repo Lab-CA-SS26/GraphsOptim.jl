@@ -456,10 +456,6 @@ function construct_formulation!(
 
     add_improved_topology_constraints_G_to_H!(model, vars, G, H)
 
-    if ismissing(c)
-        c = get_default_edit_costs(G, H)
-    end
-
     add_F2_objective!(model, c, vars, G, H)
     return nothing
 end
