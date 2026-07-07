@@ -525,9 +525,6 @@ function edit_distance!(
     c::EditCosts=get_default_edit_costs(G, H),
     formulation::Type{<:Formulation}=FORI,
 )
-    if is_directed(G) || is_directed(H)
-        error("This version of the graph edit distance only accepts undirected graphs.")
-    end
     construct_formulation!(formulation, model, G, H, c)
     return nothing
 end
