@@ -565,6 +565,6 @@ function edit_distance(
     if termination_status(model) != OPTIMAL
         error("Graph edit distance was not solved optimally.")
     end
-    node_matching = convert(Matrix{Int}, value(model[:x]))
+    node_matching = convert(Matrix{Int}, value.(model[:x]))
     return (; objective_value=objective_value(model), node_matching)
 end
