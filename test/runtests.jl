@@ -14,14 +14,12 @@ using Test
         @test format(GraphsOptim; verbose=false, overwrite=false)
     end
 
-    if VERSION >= v"1.9"
-        @testset "Code quality" begin
-            Aqua.test_all(GraphsOptim; ambiguities=false)
-        end
+    @testset "Code quality" begin
+        Aqua.test_all(GraphsOptim; ambiguities=false)
+    end
 
-        @testset "Code linting" begin
-            JET.test_package(GraphsOptim; target_defined_modules=true)
-        end
+    @testset "Code linting" begin
+        JET.test_package(GraphsOptim; target_defined_modules=true)
     end
 
     @testset "Doctests" begin

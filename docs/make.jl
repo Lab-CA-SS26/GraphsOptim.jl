@@ -23,6 +23,7 @@ end
 
 makedocs(;
     modules=[GraphsOptim],
+    checkdocs=:exports,
     authors="Guillaume Dalle, Aurora Rossi and contributors",
     sitename="GraphsOptim.jl",
     format=Documenter.HTML(;
