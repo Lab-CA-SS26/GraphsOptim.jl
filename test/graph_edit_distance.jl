@@ -116,6 +116,27 @@ end
     end
 end
 
+@testset "NodeMatchingOutput" begin
+    G = path_graph(3)
+    H = path_graph(4)
+    dist, node_matching = GraphsOptim.edit_distance(G, H)
+    @test dist == 2
+
+    # test the matrix dimensions and that the rounded result is a 0-1 matrix
+    @test size(node_matching) == (3, 4)
+    rounded_node_matching = round.(node_matching)
+    @test all(x -> x in (0, 1), rounded_node_matching)
+
+    # test its a matching matrix, accounting for the fact that it isn't a perfect match
+    for i in 1:3
+        @test sum(rounded_node_matching[i, :]) == 1
+    end
+    @test sum(rounded_node_matching[:, 1] + rounded_node_matching[:, 4]) == 1
+    for j in 2:3
+        @test sum(rounded_node_matching[:, j]) == 1
+    end
+end
+
 @testset "Edgecases" begin
     G = Graph(3)
 
