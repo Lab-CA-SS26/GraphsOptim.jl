@@ -110,20 +110,20 @@ function create_model_vars_reduced!(
 end
 
 """
-Convenience function bind. See [`create_model_vars_reduced`](@ref).
+Convenience function bind. See [`create_model_vars_reduced!`](@ref).
 """
 function create_model_vars_bidirectional!(model::Model, G::AbstractGraph, H::AbstractGraph)
     return create_model_vars_reduced!(model, G, H, true)
 end
 
 """
-    create_model_vars_full!(model, G, H, bidirectional = false)
+    create_model_vars_full!(model, G, H)
 
 Adds necessary variables for edit distance computation between `G` and `H` to `model` for
 formulations [`F1`](@ref), [`F1prime`](@ref) and [`F1plus`](@ref).
 
 In addition to the normal node and edge map variables (see
-[`create_model_vars_reduced`](@ref)), these formulations explicitly have variables to model
+[`create_model_vars_reduced!`](@ref)), these formulations explicitly have variables to model
 nodes and edges being deleted or added.
 """
 function create_model_vars_full!(model::Model, G::AbstractGraph, H::AbstractGraph)
@@ -376,9 +376,9 @@ function add_improved_topology_constraints_H_to_G!(model::Model, vars::Variables
 end
 
 """
-Add topology constraints for FORI. Uses the same implictions as used in
-[`add_improved_topology_constraints_G_to_H`](@ref) and
-[`add_improved_topology_constraints_H_to_G`](@ref), but since edges in `G` are oriented and
+Add topology constraints for FORI. Uses the same implications as used in
+[`add_improved_topology_constraints_G_to_H!`](@ref) and
+[`add_improved_topology_constraints_H_to_G!`](@ref), but since edges in `G` are oriented and
 each edge in `H` has two possible orientations, the implications are more precise.
 """
 function add_oriented_topology_constraints!(model::Model, vars::OrientedVariables, G, H)
@@ -549,7 +549,10 @@ Compute the graph edit distance between undirected graphs `G` and `H` given edit
 - `optimizer`: JuMP-compatible solver (default is `HiGHS.Optimizer`)
 
 # Returns
-- `Matrix{Int}`: the node map matrix, which encodes the optimal edit path
+A named tuple containing:
+
+- `objective_value`: the optimal graph edit distance.
+- `node_matching`: the vertex-matching matrix associated with the optimal solution.
 """
 function edit_distance(
     G::SimpleGraph,
