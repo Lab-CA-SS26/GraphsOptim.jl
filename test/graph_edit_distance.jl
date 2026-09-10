@@ -143,7 +143,7 @@ end
     H = Graph(3)
     add_edge!(H, 1, 2)
 
-    # one graph empty
+    # one graph has no edges
     for formulation in all_formulations
         model = Model(HiGHS.Optimizer)
         GraphsOptim.edit_distance!(model, G, H; formulation=formulation)
@@ -159,7 +159,7 @@ end
         @test objective_value(model) == 1
     end
 
-    # both graphs empty
+    # both graphs have no edges
     H = Graph(5)
     for formulation in all_formulations
         model = Model(HiGHS.Optimizer)
@@ -170,24 +170,23 @@ end
     end
 
     # no nodes in one graph
-    H = Graph(0)
-    for formulation in [F1, F1prime, F1plus]
+    for formulation in all_formulations
         model = Model(HiGHS.Optimizer)
-        GraphsOptim.edit_distance!(model, G, H; formulation=formulation)
+        GraphsOptim.edit_distance!(model, G, Graph(0); formulation=formulation)
         set_silent(model)
         optimize!(model)
         @test objective_value(model) == 3
     end
-    # for F2 type formulations, the formulation contains no variables
-    # we thus add a dummy variable to make the solver accept the model
-    for formulation in [F2, F2minus, F2plus, FORI]
+    # no nodes in both graphs
+    for formulation in all_formulations
         model = Model(HiGHS.Optimizer)
-        GraphsOptim.edit_distance!(model, G, H; formulation=formulation)
-        @test num_variables(model) == 0
-        @variable(model, dummy)
+        GraphsOptim.edit_distance!(model, Graph(0), Graph(0); formulation=formulation)
         set_silent(model)
         optimize!(model)
-        @test objective_value(model) == 3
+        @test objective_value(model) == 0
+
+        # the same behaviour in the edit_distance function
+        @test GraphsOptim.edit_distance(Graph(0), Graph(0)).objective_value == 0
     end
 end
 

@@ -17,6 +17,7 @@ using JuMP: set_silent, optimize!, termination_status, value
 using JuMP: set_optimizer, objective_value
 using JuMP: @variable, @constraint, @objective
 using JuMP: VariableRef
+using JuMP: num_variables
 using LinearAlgebra: norm, tr, dot
 using MathOptInterface: OPTIMAL
 using SparseArrays: sparse

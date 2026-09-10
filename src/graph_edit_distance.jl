@@ -526,6 +526,11 @@ function edit_distance!(
     formulation::Type{<:Formulation}=FORI,
 )
     construct_formulation!(formulation, model, G, H, c)
+    if num_variables(model) == 0
+        # in this case, one or both of the graphs have no edges and/or no nodes.
+        # For the solver to work, we add an unbounded dummy variable
+        @variable(model, dummy)
+    end
     return nothing
 end
 
