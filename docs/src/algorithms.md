@@ -111,8 +111,7 @@ The formulations implemented here are described in [`D'ascenzo, Andrea, et al. "
 In the graph edit distance problem, we search for a minimum cost *edit path* between
 two graphs $G$ and $H$, that is a sequence of edit operations transforming $G$ to $H$. Valid edit operations include inserting, deleting, or relabeling vertices and edges.
 
-This formulation of the problem is easy to visualize, but not very suitable for implementing
-with integer programming. We thus use another, equivalent definition instead: a *node map*
+This formulation of the problem is easy to visualize, but is not well suited to an integer-programming implementation. We thus use an equivalent definition: a *node map*
 is a relation $\pi \subset V_{G+ \epsilon} \times V_{H + \epsilon}$ on the vertex sets
 augmented by $\epsilon$, in which 
 
