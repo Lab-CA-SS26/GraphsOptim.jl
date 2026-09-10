@@ -266,7 +266,7 @@ end
 
 """
 Adds objective function for [`FORI`](@ref) formulation variables. The implementation is in
-[`add_F2_objective`](@ref).
+[`add_F2_objective!`](@ref).
 """
 function add_FORI_objective!(
     model, c::EditCosts, vars::OrientedVariables, G::AbstractGraph, H::AbstractGraph
@@ -347,7 +347,7 @@ function add_simple_topology_constraints!(model::Model, vars::Variables, G, H)
 end
 
 """
-Add improved topology constraints, replacing [`add_simple_topology_constraints`](@ref): 
+Add improved topology constraints, replacing [`add_simple_topology_constraints!`](@ref): 
 If edge `ij` is mapped to any edge incident to `k`, then `i` or `j` must be mapped to `k`.
 """
 function add_improved_topology_constraints_G_to_H!(model::Model, vars::Variables, G, H)
@@ -361,7 +361,7 @@ function add_improved_topology_constraints_G_to_H!(model::Model, vars::Variables
 end
 
 """
-Add topology constraints mirroring [`add_improved_topology_constraints_G_to_H`](@ref), but
+Add topology constraints mirroring [`add_improved_topology_constraints_G_to_H!`](@ref), but
 backwards: If any edge incident to `i` is mapped to `kl`, then `i` must be mapped to `k` or
 `l`.
 """
@@ -510,7 +510,7 @@ function construct_formulation!(
 end
 
 """
-    edit_distance(model, G, H;
+    edit_distance!(model, G, H;
         c, formulation
     )
 
